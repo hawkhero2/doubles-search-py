@@ -25,25 +25,27 @@ class App(QMainWindow):
         self.show()
 
     def browse_file(self):
-        desktop = os.path.expanduser("~\Desktop\\") #path for current user desktop
+        fileName, _ = QFileDialog.getOpenFileName(self,"Select Excel", "","Excel Files(*.xlsx)") # Grab File
+
+        desktop = os.path.expanduser("~\Desktop\\") # current user desktop path
+        base_xl = Workbook()
+        result_xl = Workbook()
         
-        fileName, _ = QFileDialog.getOpenFileName(self,"Select Excel", "","Excel Files(*.xlsx)") #Grab File
-        xl_to_check = Workbook()
-        duplicate_xl = Workbook()
-        xl_to_check = load_workbook(fileName)
-        xl_to_check_sheet = xl_to_check.active
+        base_xl = load_workbook(fileName,data_only=True)
+        base_xl_sheet = base_xl.active
         # make a new list to store the IDs
-        xl_duplicates = []
-        xl_column_to_check = []
-        for id in xl_to_check_sheet.iter_rows(min_row=2, max_row=xl_to_check_sheet.max_row, min_col=1, max_col=1,values_only=True):
-           
-            for id_to_check in xl_to_check_sheet.iter_rows(min_row=1, max_row=xl_to_check_sheet.max_row, min_col=3, max_col=3,values_only=True):
-                if id == id_to_check:
-                    xl_duplicates.append(id_to_check)
-        duplicate_xl.create_sheet("Duplicates")
-        duplicate_xl.active.append(xl_duplicates)
-        duplicate_xl.save(desktop + 'Duplicates.xlsx')
-        xl_to_check.close()
+        column_to_check = []
+        
+        result_xl.create_sheet("result")
+        result_xl_sheet = result_xl["result"]
+        
+        for val in base_xl_sheet.iter_rows(min_row=1, max_row=base_xl_sheet.max_row, min_col=2, max_col=2, values_only=True):
+            column_to_check.append(val)
+        for id in base_xl_sheet.iter_rows(min_row=1, max_row=base_xl_sheet.max_row, min_col=1, max_col=1, values_only=True):
+            if (id not in column_to_check):
+                result_xl_sheet.append(id)
+        base_xl.close()
+        result_xl.save(desktop + 'result.xlsx')
         self.statusBar().showMessage('Process Finished')
         
         
